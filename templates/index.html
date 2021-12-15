@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+  {{ super() }} 
+{% endblock %} 
+{% block content %}
+<h1 class="text-center mt-5 mb-5">Analyze APK</h1>
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <form method="POST" action="/analyze" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="formApkFile" class="form-label">Select APK file</label>
+        <input class="form-control" type="file" name="fileApk" id="formApkFile" accept=".apk" required />
+      </div>
+      <div class="mb-3">
+        <button type="submit" class="btn btn-primary mb-3">Analyze</button> 
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

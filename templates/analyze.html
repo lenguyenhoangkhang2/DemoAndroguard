@@ -1,0 +1,118 @@
+{% extends "base.html" %} 
+{% block title %}Analyze{% endblock %} 
+{% block head %}
+  {{ super() }} 
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <h2 class="mt-4 mb-5 text-center">App name: {{apkName}}<h2>
+    <h4>Package name: {{package}}</h4>
+  </div>
+  <div class="col-md-7"> 
+    <h4 class="mt-4">Permissions</h4>
+    {% for permission in permissions %}
+      {{permission.split("android.permission.")[1].replace("_"," ").capitalize()}}. 
+    {% endfor %}
+  </div>
+  <div class="col-md-5">
+    <h4 class="mt-4">Activities</h4>
+    {% for activity in activities %}
+      {{activity.capitalize()}}<br> 
+    {% endfor %}
+  </div>
+  <div class="col-12">
+    <h4 class="mt-4">Android Signing Certificates</h4>
+    {% if isSigned %}    
+      Is signed v1: {{isSigned1}}
+      <br/>
+      Is signed v2: {{isSigned2}}
+      <br/>
+      {% for cert in certs %}
+        SHA1: {{cert.sha1}}<br/> 
+        SHA256: {{cert.sha256}}<br/>
+        Issuer: {{cert.issuer.human_friendly}}<br/>
+        Subject: {{cert.subject.human_friendly}}<br/>
+        Hash Algorithm: {{cert.hash_algo}}<br/>
+        Signature Algorithm: {{cert.signature_algo}}<br/>
+        Serial Number: {{cert.serial_number}}<br/>
+      {% endfor %}
+    {% else %}
+      APK is not signed.
+    {% endif %}
+  </div>
+  <div class="col-12">
+    <h4 class="mt-4">Classes</h4>
+    <div class="row">
+      <div class="col-md-6">
+        <h5 class="mt-3">Internal</h5>
+        <div class="accordion overflow-auto border" id="accordionClassInternal" style="height:600px;">
+          {% for class in internalClasses %}
+            <div class="accordion-item">
+              <span class="accordion-header" id="in-heading-{{loop.index}}">
+                <button class="accordion-button collapsed" 
+                  type="button" 
+                  data-bs-toggle="collapse" 
+                  data-bs-target="#in-collapse-{{loop.index}}" 
+                  aria-expanded="false" 
+                  aria-controls="in-collapse-{{loop.index}}"
+                >
+                  {{class.name}}
+                </button>
+              </span>
+              <div id="in-collapse-{{loop.index}}" 
+                class="accordion-collapse collapse" 
+                aria-labelledby="in-heading-{{loop.index}}" 
+                data-bs-parent="#accordionClassInternal"
+              >
+                <div class="accordion-body">
+                  {% for meth in class.get_methods() %}
+                    <strong>Inside method: {{meth.name}}</strong><br/>
+                    {% for _, call, _ in meth.get_xref_to() %}
+                      {{"calling: " + call.class_name + " -- "}}<strong>{{call.name}}</strong><br/>
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6" >
+        <h5 class="mt-3">External</h5>
+        <div class="accordion overflow-auto border" id="accordionClassExternal" style="height:600px;">
+          {% for class in externalClasses %}
+          <div class="accordion-item">
+            <span class="accordion-header" id="ex-heading-{{loop.index}}">
+              <button class="accordion-button collapsed" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#ex-collapse-{{loop.index}}" 
+                aria-expanded="false" 
+                aria-controls="ex-collapse-{{loop.index}}"
+              >
+                {{class.name}}
+              </button>
+            </span>
+            <div id="ex-collapse-{{loop.index}}" 
+              class="accordion-collapse collapse" 
+              aria-labelledby="ex-heading-{{loop.index}}" 
+              data-bs-parent="#accordionClassExternal"
+            >
+              <div class="accordion-body">
+                {% for meth in class.get_methods() %}
+                  <strong>Usage of method: {{meth.name}}</strong><br/>
+                  {% for _, call, _ in meth.get_xref_from() %}
+                  {{"called by: " + call.class_name + " -- "}}<strong>{{call.name}}</strong><br/>
+                  {% endfor %}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
